@@ -77,12 +77,14 @@ def inferir_item(row, tol=0.01):
 df_coluna_nova_item["Item"] = df_coluna_nova_item.apply(inferir_item, axis=1)
 df_coluna_nova_item
 
-# Filtrando valores nulos na coluna "Item". Apesar da limpeza, ainda temos nulos.""
+# Filtering null values at column "Item"
+
 df_coluna_nova_item_filtro = df_coluna_nova_item[
     df_coluna_nova_item["Item"].isna()
 ]
 df_coluna_nova_item_filtro
-## VERIFIQUEI QUE OS VALORES COMO NAN, ERROR E UNKNNOWN NA COLUNA "ITEM", NAO CONSEGUIMOS INFERIR, ENTÃO PODEMOS DAR O DROP NESSAS LINHAS.
+
+## I certified it has values likeNAN, ERROR E UNKNOWN at column "ITEM", so how we can't tell what value fill, we can drop this lines.
 df_coluna_nova_item.drop(
     df_coluna_nova_item[
         df_coluna_nova_item["Item"].isin(["UNKNOWN", "ERROR"]) |
@@ -99,17 +101,20 @@ df_coluna_nova_item
 
 df_coluna_nova_item["Price Per Unit"] = df_coluna_nova_item["Item"].map(preco_por_item)
 
-#Localizando itens ambiguos. Tem itens com o mesmo preço.
+#Localizing ambiguos itens 
+
 df_coluna_nova_item.loc[
     df_coluna_nova_item["Item"] == "AMBIGUOUS",
     "Price Per Unit"
 ].value_counts(dropna=False)
 
 filtro_ambiguo = df_coluna_nova_item[df_coluna_nova_item["Item"] == "AMBIGUOUS"]
-#print(filtro_ambiguo)
-## Tem itens ambiguous - cake e juice -> 3.0
+
+## It has ambiguos price per unit information - cake e juice -> 3.0
                         #Smoothie e Sandwich -> 4.0
-# fazer um teste, retornar só o que está ambiguo, para ver o que podemos fazer.
+
+# To solve this, we need to create a mask for this. When module division by 2 of Total Spent column values equals to 0, then it will be filled with Sandwich.
+# When differ for 0, then will be Cake!!
 
 mask_amb = df_coluna_nova_item["Item"] == "AMBIGUOUS"
 
@@ -143,7 +148,7 @@ df_coluna_nova_item = df_coluna_nova_item.dropna(subset=["Quantity"])
 df_coluna_nova_item
 df_coluna_nova_item.isnull().sum()
 
-# transformando em inteiro o quantity.
+# Column Quantity to int.
 df_coluna_nova_item["Quantity"] = df_coluna_nova_item["Quantity"].astype(int)
 
 # Filtering null values in Payment Method Column and filling with Credit Card"
@@ -154,5 +159,49 @@ df_coluna_nova_item["Payment Method"] = (
 )
 df_coluna_nova_item
 
+#Replacing UNKNOWN AND ERROR VALUES WITH VALID VALUES AT DATASET.
+df_coluna_nova_item["Payment Method"] = (
+    df_coluna_nova_item["Payment Method"]
+    .replace({
+        "UNKNOWN": "Cash",
+        "ERROR": "Digital Wallet"
+    })
+)
+
+df_coluna_nova_item["Location"] = (
+    df_coluna_nova_item["Location"].fillna("In-store")
+)
+df_coluna_nova_item
+
+df_coluna_nova_item["Location"] = (
+    df_coluna_nova_item["Location"]
+    .replace({
+        "UNKNOWN": "Takaway",
+        "ERROR": "Takeaway"
+    })
+)
+df_coluna_nova_item
 
 
+df_ajustes_transaction_date = df_coluna_nova_item[df_coluna_nova_item["Transaction Date"].isna()]
+df_ajustes_transaction_date
+
+df_coluna_nova_item["Transaction Date"] = (
+    df_coluna_nova_item["Transaction Date"].fillna("2025-12-22")
+)
+
+df_coluna_nova_item["Transaction Date"] = (
+    df_coluna_nova_item["Transaction Date"]
+    .replace({
+        "UNKNOWN": "2025-12-22",
+        "ERROR": "2025-12-22"
+    })
+)
+df_coluna_nova_item
+
+#Dataset adjusted and cleaned!!!
+
+dirty_cafe_sales_adjusted = df_coluna_nova_item.copy()
+dirty_cafe_sales_adjusted["Transaction Date"] = pd.to_datetime(dirty_cafe_sales_adjusted['Transaction Date'])
+dirty_cafe_sales_adjusted.info()
+dirty_cafe_sales_adjusted.to_excel("Dirty_Cafe_Sales_adjusted2.xlsx", index = False)
