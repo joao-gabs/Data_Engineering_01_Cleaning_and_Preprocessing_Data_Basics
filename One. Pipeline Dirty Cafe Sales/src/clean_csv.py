@@ -92,5 +92,59 @@ df_coluna_nova_item.drop(
 )
 df_coluna_nova_item
 
+df_coluna_nova_item["Quantity"] = (
+    df_coluna_nova_item["Total Spent"] / df_coluna_nova_item["Price Per Unit"]
+)
+df_coluna_nova_item
+
+df_coluna_nova_item["Price Per Unit"] = df_coluna_nova_item["Item"].map(preco_por_item)
+
+#Localizando itens ambiguos. Tem itens com o mesmo preço.
+df_coluna_nova_item.loc[
+    df_coluna_nova_item["Item"] == "AMBIGUOUS",
+    "Price Per Unit"
+].value_counts(dropna=False)
+
+filtro_ambiguo = df_coluna_nova_item[df_coluna_nova_item["Item"] == "AMBIGUOUS"]
+#print(filtro_ambiguo)
+## Tem itens ambiguous - cake e juice -> 3.0
+                        #Smoothie e Sandwich -> 4.0
+# fazer um teste, retornar só o que está ambiguo, para ver o que podemos fazer.
+
+mask_amb = df_coluna_nova_item["Item"] == "AMBIGUOUS"
+
+df_coluna_nova_item.loc[
+    mask_amb & (df_coluna_nova_item["Total Spent"] % 2 == 0),
+    "Item"
+] = "Sandwich"
+
+df_coluna_nova_item.loc[
+    mask_amb & (df_coluna_nova_item["Total Spent"] % 2 != 0),
+    "Item"
+] = "Cake"
+
+
+df_coluna_nova_item["Price Per Unit"] = df_coluna_nova_item["Item"].map(preco_por_item)
+
+df_coluna_nova_item["Total Spent"] = pd.to_numeric(
+    df_coluna_nova_item["Total Spent"], errors="coerce"
+)
+
+df_coluna_nova_item["Price Per Unit"] = pd.to_numeric(
+    df_coluna_nova_item["Price Per Unit"], errors="coerce"
+)
+
+df_coluna_nova_item["Quantity"] = (
+    df_coluna_nova_item["Total Spent"] / df_coluna_nova_item["Price Per Unit"]
+)
+df_coluna_nova_item
+
+df_coluna_nova_item = df_coluna_nova_item.dropna(subset=["Quantity"])
+df_coluna_nova_item
+df_coluna_nova_item.isnull().sum()
+
+# transformando em inteiro o quantity.
+df_coluna_nova_item["Quantity"] = df_coluna_nova_item["Quantity"].astype(int)
+
 
 
