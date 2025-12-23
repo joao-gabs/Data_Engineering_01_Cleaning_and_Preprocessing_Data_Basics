@@ -146,5 +146,13 @@ df_coluna_nova_item.isnull().sum()
 # transformando em inteiro o quantity.
 df_coluna_nova_item["Quantity"] = df_coluna_nova_item["Quantity"].astype(int)
 
+# Filtering null values in Payment Method Column and filling with Credit Card"
+df_ajustes_payment_method = df_coluna_nova_item[df_coluna_nova_item["Payment Method"].isna()]
+df_ajustes_payment_method
+df_coluna_nova_item["Payment Method"] = (
+    df_coluna_nova_item["Payment Method"].fillna("Credit Card")
+)
+df_coluna_nova_item
+
 
 
